@@ -12,6 +12,23 @@
     this._wrapped = obj;
   };
 
+  // 使用chainResult函数包裹返回值
+  var chainResult = function(instance, obj) {
+    return instance._chain ? _.chain(obj) : obj;
+  }
+
+  // 使用_.value 返回最后的值
+  _.prototype.value = function() {
+    return this._wrapped;
+  }
+
+  // 使用链式调用, 要实现链式调用，需要让每个函数返回一个对象，并保存此次结果，因此用chainResult包裹，此外还需要用value方法最后将对象的值返回
+  _.chain = function(obj) {
+    var instance = _(obj);
+    instance._chain = true;
+    return instance;
+  }
+
   // 判断是否是类数组
   var isArrayLike = function(collection) {
     var length = collection.length;
@@ -76,7 +93,9 @@
       _.prototype[name] = function() {
         var args = [this._wrapped];
         [].push.apply(args, arguments);
-        return func.apply(_, args);
+        // 修改前：return func.apply(_, args);
+        // 修改后：
+        return chainResult(this, func.apply(_, args));
       }
     })
     return _;

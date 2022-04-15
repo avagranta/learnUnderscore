@@ -6,10 +6,17 @@
   
   // 定义_对象，既要支持函数式调用，又要支持对象式调用，因此定义为函数
   var _ = function(obj) {
-    // 返回一个对象，该对象原型指向_.prototype
+    // 如果不是_的实例，则返回一个对象，该对象原型指向_.prototype
+    if (obj instanceof _) return obj;
     if (!(this instanceof _)) return new _(obj);
     this._wrapped = obj;
   };
+
+  // 判断是否是类数组
+  var isArrayLike = function(collection) {
+    var length = collection.length;
+    return typeof length === 'number' && length >= 0;
+  }
 
   // 获取_上的方法
   _.functions = function(obj) {
@@ -23,24 +30,66 @@
 
   // 判断是否是函数
   _.isFunction = function(obj) {
-    if (Object.prototype.toString.call(obj) === 'object Function')
+    if (Object.prototype.toString.call(obj) === '[object Function]')
       return true;
     else
       return false;
   }
 
-  // 将_构造函数上的方法复制到_.prototype上
-  _.mixin = function(obj) {
-    
+  // 遍历方法
+  _.each = function(obj, callback) {
+    var length, i = 0;
+    if (isArrayLike(obj)) {
+      length = obj.length;
+      for (; i < length; i++) {
+        if (callback.call(obj[i], obj[i], i) === false) {
+          break;
+        }
+      }
+    } else {
+      for (i in obj) {
+        if (callback.call(obj[i], i) === false) {
+          break;
+        }
+      }
+    }
+    return obj;
   }
 
-  // 挂载到全局对象上
-  root._ = _;
+  // 在mixin前添加自定义函数
 
-  // 自定义函数
-  _.log = function() {
-    console.log(1);
+  // log方法
+  _.log = function(content) {
+    console.log(content);
+  }
+
+  // reverse方法
+  _.reverse = function(string) {
+    return string.split('').reverse().join('');
+  }
+
+  // 将_构造函数上的方法复制到_.prototype上
+  _.mixin = function(obj) {
+    _.each(_.functions(obj), function(name) {
+      // var func = _[name] = obj[name];
+      var func = _[name];
+      _.prototype[name] = function() {
+        var args = [this._wrapped];
+        [].push.apply(args, arguments);
+        return func.apply(_, args);
+      }
+    })
+    return _;
+  }
+
+  // 调用mixin
+  _.mixin(_);
+
+  // 挂载到全局对象上, 以及模块化导出
+  if (typeof module != 'undefined') {
+    module.exports = _;
+  } else {
+    root._ = _;
   }
 })()
 
-console.log(global);

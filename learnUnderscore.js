@@ -1,4 +1,4 @@
-// 将所有方法添加到_对象上，再将该对象挂载到全局对象上
+// 将所有方法添加到_对象上，再将该对象通过模块导出或者挂载到全局对象上
 (function() {
   // 获取全局对象，对环境进行检测，分别考虑浏览器环境(window/self)、node环境(global)、Web Worker(self)、
   var root = (typeof self === 'object' && self.window === self && self) ||
@@ -6,7 +6,7 @@
   
   // 定义_对象，既要支持函数式调用，又要支持对象式调用，因此定义为函数
   var _ = function(obj) {
-    // 如果不是_的实例，则返回一个对象，该对象原型指向_.prototype
+    // 如果不是_的实例，则返回调用对象，该对象原型指向_.prototype
     if (obj instanceof _) return obj;
     if (!(this instanceof _)) return new _(obj);
     this._wrapped = obj;

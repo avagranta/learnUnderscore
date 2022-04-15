@@ -7,6 +7,29 @@ https://github.com/mqyqingfeng/Blog/issues/57
 ## 1. 主要思路
 
 - 在匿名自执行函数中创建一个对象（_），再将自己方法添加到该对象上，最后通过模块导出。
+整体框架如下，细节在实现过程中补充。
+
+```js
+(function(){
+  	// 获取全局对象
+    var root = this;
+
+    // 创建自定义对象
+    var _ = {};
+		
+    // 挂载到全局对象上或者导出
+    root._ = _;
+
+    // 在这里添加自己的方法
+    _.reverse = function(string){
+        return string.split('').reverse().join('');
+    }
+
+})()
+
+_.reverse('hello');
+=> 'olleh'
+```
 
 > 注意：
 >
